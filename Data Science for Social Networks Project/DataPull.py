@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-
+# Script for transforming zst files extracted from pushshift.io into a legible format for loading
 
 import io
 import zstandard as zstd
