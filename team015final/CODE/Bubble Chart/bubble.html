@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<!-- Load color scale -->
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+
+<!-- A bit of CSS: change stroke color of circle on hover (white -> black) -->
+<style>
+.bubbles {
+  stroke-width: 1px;
+  stroke: black;
+  opacity: .8
+}
+.bubbles:hover {
+  stroke: black;
+}
+</style>
+
+
+<script>
+
+    // set the dimensions and margins of the graph
+    var margin = {top: 40, right: 150, bottom: 60, left: 30},
+        width = 500 - margin.left - margin.right,
+        height = 420 - margin.top - margin.bottom;
+    
+    // append the svg object to the body of the page
+    var svg = d3.select("#my_dataviz")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+    
+    //Read the data
+    filepath = 'bubble.csv' // "https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/4_ThreeNum.csv"
+    d3.csv(filepath, function(data) {
+    
+      // ---------------------------//
+      //       AXIS  AND SCALE      //
+      // ---------------------------//
+    
+      // Add X axis
+      var x = d3.scaleLinear()
+        .domain([-1, 1])
+        .range([ 0, width ]);
+      svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x).ticks(3));
+    
+      // Add X axis label:
+      svg.append("text")
+          .attr("text-anchor", "end")
+          .attr("x", width)
+          .attr("y", height+50 )
+          .text("Average Sentiment Score");
+    
+      // Add Y axis
+      var y = d3.scaleLinear()
+        .domain([0, 600]) // change this to d3.max(d, function(p) { return p.number_of_posts } )
+        .range([ height, 0]);
+      svg.append("g")
+        .call(d3.axisLeft(y));
+    
+      // Add Y axis label:
+      svg.append("text")
+          .attr("text-anchor", "end")
+          .attr("x", 0)
+          .attr("y", -20 )
+          .text("Number of Posts")
+          .attr("text-anchor", "start")
+    
+      // Add a scale for bubble size
+      var z = d3.scaleSqrt()
+        .domain([1,5])
+        .range([ 1,5]);
+    
+      // Add a scale for bubble color
+      var myColor = d3.scaleOrdinal()
+        .domain(["reddit", "twitter"])
+        .range(d3.schemeSet1); // might have to change this
+    
+    
+      // ---------------------------//
+      //      TOOLTIP               //
+      // ---------------------------//
+    
+      // -1- Create a tooltip div that is hidden by default:
+      var tooltip = d3.select("#my_dataviz")
+        .append("div")
+          .style("opacity", 0)
+          .attr("class", "tooltip")
+          .style("background-color", "black")
+          .style("border-radius", "5px")
+          .style("padding", "10px")
+          .style("color", "white")
+    
+      // -2- Create 3 functions to show / update (when mouse move but stay on same circle) / hide the tooltip
+      var showTooltip = function(d) {
+        tooltip
+          .transition()
+          .duration(200)
+        tooltip
+          .style("opacity", 1)
+          .html("Hashtag: " + d.tag)
+          .style("left", (d3.mouse(this)[0]+30) + "px")
+          .style("top", (d3.mouse(this)[1]+30) + "px")
+      }
+      var moveTooltip = function(d) {
+        tooltip
+          .style("left", (d3.mouse(this)[0]+30) + "px")
+          .style("top", (d3.mouse(this)[1]+30) + "px")
+      }
+      var hideTooltip = function(d) {
+        tooltip
+          .transition()
+          .duration(200)
+          .style("opacity", 0)
+      }
+    
+    
+      // ---------------------------//
+      //       HIGHLIGHT GROUP      //
+      // ---------------------------//
+    
+      // What to do when one group is hovered
+      var highlight = function(d){
+        // reduce opacity of all groups
+        d3.selectAll(".bubbles").style("opacity", .05)
+        // expect the one that is hovered
+        d3.selectAll("."+d).style("opacity", 1)
+      }
+    
+      // And when it is not hovered anymore
+      var noHighlight = function(d){
+        d3.selectAll(".bubbles").style("opacity", 1)
+      }
+    
+    
+      // ---------------------------//
+      //       CIRCLES              //
+      // ---------------------------//
+    
+      // Add dots
+      svg.append('g')
+        .selectAll("dot")
+        .data(data)
+        .enter()
+        .append("circle")
+          .attr("class", function(d) { return "bubbles " + d.source })
+          .attr("cx", function (d) { return x(d.score); } )
+          .attr("cy", function (d) { return y(d.number_of_posts); } )
+          .attr("r", 5 )
+          .style("fill", function (d) { return myColor(d.source); } )
+        // -3- Trigger the functions for hover
+        .on("mouseover", showTooltip )
+        .on("mousemove", moveTooltip )
+        .on("mouseleave", hideTooltip )
+    
+    
+    
+        // ---------------------------//
+        //       LEGEND              //
+        // ---------------------------//
+    
+        // Add legend: circles
+        var valuesToShow = [10000000, 100000000, 1000000000]
+        var xCircle = 390
+        var xLabel = 440
+    
+        // Add one dot in the legend for each name.
+        var size = 20
+        var allgroups = ["reddit", "twitter"]
+        svg.selectAll("myrect")
+          .data(allgroups)
+          .enter()
+          .append("circle")
+            .attr("cx", 390)
+            .attr("cy", function(d,i){ return 10 + i*(size+5)}) // 100 is where the first dot appears. 25 is the distance between dots
+            .attr("r", 7)
+            .style("fill", function(d){ return myColor(d)})
+            .on("mouseover", highlight)
+            .on("mouseleave", noHighlight)
+    
+        // Add labels beside legend dots
+        svg.selectAll("mylabels")
+          .data(allgroups)
+          .enter()
+          .append("text")
+            .attr("x", 390 + size*.8)
+            .attr("y", function(d,i){ return i * (size + 5) + (size/2)}) // 100 is where the first dot appears. 25 is the distance between dots
+            .style("fill", function(d){ return myColor(d)})
+            .text(function(d){ return d})
+            .attr("text-anchor", "left")
+            .style("alignment-baseline", "middle")
+            .on("mouseover", highlight)
+            .on("mouseleave", noHighlight)
+      })
+    </script>
+<!-- python code to create the csv; just change the directory to where sentiment output csv is stored
+import os
+import pandas as pd
+
+os.chdir(r'C:\Users\Suraj Shourie\OneDrive\Sem1\CSE 6242 DVA\hw2-skeleton\Q4\sentiment_score_output')
+
+output = {
+    'score': [],
+    'source': [],
+    'tag': [],
+    'number_of_posts': [],
+}
+
+for filename in os.listdir():
+    if filename == 'reddit':
+        break
+    df = pd.read_csv(filename)
+    output['score'].append(df['sentiment_score'].mean())
+    output['tag'].append(filename.split('_')[1].split('.')[0])
+    output['source'].append('twitter')
+    output['number_of_posts'].append(df.shape[0])
+
+os.chdir(r'C:\Users\Suraj Shourie\OneDrive\Sem1\CSE 6242 DVA\hw2-skeleton\Q4\sentiment_score_output\reddit')
+
+for filename in os.listdir():
+    df = pd.read_csv(filename)
+    output['score'].append(df['sentiment_score'].mean())
+    output['tag'].append(filename.split('_')[1].split('.')[0])
+    output['source'].append('reddit')
+    output['number_of_posts'].append(df.shape[0])
+
+pd.DataFrame(output).to_csv(r'C:\Users\Suraj Shourie\OneDrive\Sem1\CSE 6242 DVA\hw2-skeleton\Q4\bubble.csv')
+-->

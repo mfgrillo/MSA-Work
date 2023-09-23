@@ -1,0 +1,229 @@
+<!-- Code from d3-graph-gallery.com -->
+<!DOCTYPE html>
+<meta charset="utf-8">
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<!-- Add 2 buttons -->
+<button onclick="buttonclickChoice()">Pro-Choice</button>
+<button onclick="buttonclickLife()">Pro-Life</button>
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+<script>
+  // create 2 data_set
+  var data2 = [{
+    group: 'Alabama',
+    value: 0.5791042957987104
+  }, {
+    group: 'Alaska',
+    value: 0.3189290016889572
+  }, {
+    group: 'Arkansas',
+    value: 0.6448966755586512
+  }, {
+    group: 'Florida',
+    value: 0.5087628542283259
+  }, {
+    group: 'Idaho',
+    value: 0.4129639351326712
+  }, {
+    group: 'Indiana',
+    value: 0.5129639351367951
+  }, {
+    group: 'Iowa',
+    value: 0.17119704683621728
+  }, {
+    group: 'Kansas',
+    value: 0.20703384041786194
+  }, {
+    group: 'Kentucky',
+    value: 0.2626652249268123
+  }, {
+    group: 'Louisiana',
+    value: 0.504293384651343
+  }, {
+    group: 'Mississippi',
+    value: 0.1189290016889572
+  }, {
+    group: 'Missouri',
+    value: 0.30419457790463467
+  }, {
+    group: 'Montana',
+    value: 0.11697695321506923
+  }, {
+    group: 'Nebraska',
+    value: 0.05813427269458771
+  }, {
+    group: 'North Carolina',
+    value: 0.17216818059905098
+  }, {
+    group: 'North Dakota',
+    value: 0.0028321941693623676
+  }, {
+    group: 'Ohio',
+    value: 0.34602172010474735
+  }, {
+    group: 'Oklahoma',
+    value: 0.2382406090435229
+  }, {
+    group: 'South Carolina',
+    value: 0.5545977056026459
+  }, {
+    group: 'South Dakota',
+    value: 0.24496375769376755
+  }, {
+    group: 'Tennessee',
+    value: 0.18991718292236326
+  }, {
+    group: 'Texas',
+    value: 0.27817256330586165
+  }, {
+    group: 'Utah',
+    value: 0.044036754540034695
+  }, {
+    group: 'West Virginia',
+    value: 0.0065987408161163885
+  }, {
+    group: 'Wyoming',
+    value: 0.1570702384818684
+  }];
+
+
+  var data1 = [{
+    group: 'Alabama',
+    'value': 0.13788312301039696
+  }, {
+    'group': 'Alaska',
+    'value': 0.15217232343242443
+  }, {
+    'group': 'Arkansas',
+    'value': 0.0079917311668396
+  }, {
+    'group': 'Florida',
+    'value': 0.14887414248216718
+  }, {
+    'group': 'Idaho',
+    'value': 0.0037040114402770996
+  }, {
+    'group': 'Indiana',
+    'value': 0.22846175357699394
+  }, {
+    'group': 'Iowa',
+    'value': 0.007484372173036935
+  }, {
+    'group': 'Kansas',
+    'value': 0.14817236363887787
+  }, {
+    'group': 'Kentucky',
+    'value': 0.0015066961447398053
+  }, {
+    'group': 'Louisiana',
+    'value': 0.12007121506490204
+  }, {
+    'group': 'Mississippi',
+    'value': 0.007495679638602537
+  }, {
+    'group': 'Missouri',
+    'value': 0.4435052010748121
+  }, {
+    'group': 'Montana',
+    'value': 0.03547743707895279
+  }, {
+    'group': 'Nebraska',
+    'value': 0.005737973111016426
+  }, {
+    'group': 'North Carolina',
+    'value': 0.10344775269428891
+  }, {
+    'group': 'North Dakota',
+    'value': 0.0038975775241851807
+  }, {
+    'group': 'Ohio',
+    'value': 0.13578530943999856
+  }, {
+    'group': 'Oklahoma',
+    'value': 0.09888019480488519
+  }, {
+    'group': 'South Carolina',
+    'value': 0.18129536509513855
+  }, {
+    'group': 'South Dakota',
+    'value': 0.16591874587965847
+  }, {
+    'group': 'Tennessee',
+    'value': 0.11933249936384316
+  }, {
+    'group': 'Texas',
+    'value': 0.1702558289047416
+  }, {
+    'group': 'Utah',
+    'value': 0.0023306608200073242
+  }, {
+    'group': 'West Virginia',
+    'value': 0.04633942246437078
+  }, {
+    'group': 'Wyoming',
+    'value': 0.013563453435345345
+  }];
+
+
+  // set the dimensions and margins of the graph
+  var margin = {
+      top: 30,
+      right: 30,
+      bottom: 70,
+      left: 60
+    },
+    width = 1900 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+  // append the svg object to the body of the page
+  var svg = d3.select("#my_dataviz").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  // Initialize the X axis
+  var x = d3.scaleBand().range([0, width]).padding(0.2);
+  var xAxis = svg.append("g").attr("transform", "translate(0," + height + ")")
+  // Initialize the Y axis
+  var y = d3.scaleLinear().range([height, 0]);
+  var yAxis = svg.append("g").attr("class", "myYaxis")
+  // Graph title
+  svg.append("text").attr("x", (width / 2)).attr("y", 0 - (margin.top / 2)).attr("text-anchor", "middle").style("font-size", "16px").text("Abortion Sentiment Across Republican States");
+  // A function that create / update the plot for a given variable:
+  function update(data) {
+    // Update the X axis
+    x.domain(data.map(function(d) {
+      return d.group;
+    }))
+    xAxis.call(d3.axisBottom(x))
+    // Update the Y axis
+    y.domain([0, d3.max(data, function(d) {
+      return d.value
+    })]);
+    yAxis.transition().duration(1000).call(d3.axisLeft(y));
+    // Create the u variable
+    var u = svg.selectAll("rect").data(data)
+    u.enter().append("rect") // Add a new rect for each new elements
+      .merge(u) // get the already existing elements as well
+      .transition() // and apply changes to all of them
+      .duration(1000).attr("x", function(d) {
+        return x(d.group);
+      }).attr("y", function(d) {
+        return y(d.value);
+      }).attr("width", x.bandwidth()).attr("height", function(d) {
+        return height - y(d.value);
+      }).attr("fill", "red")
+    // If less group in the new dataset, I delete the ones not in use anymore
+    u.exit().remove()
+  }
+  // This function is called by the buttons on top of the plot
+  function changeColor(color) {
+    d3.selectAll("rect").transition().duration(2000).style("fill", color)
+  }
+  // function calls
+  function buttonclickLife() {
+    update(data2);
+  }
+
+  function buttonclickChoice() {
+    update(data1);
+  }
+  // Initialize the plot with the first dataset
+  update(data1)
+</script>

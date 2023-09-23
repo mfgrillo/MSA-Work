@@ -1,0 +1,160 @@
+<!-- Code from d3-graph-gallery.com -->
+<!DOCTYPE html>
+<meta charset="utf-8">
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<!-- Add 2 buttons -->
+<button onclick="buttonclickChoice()">Pro-Choice</button>
+<button onclick="buttonclickLife()">Pro-Life</button>
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+<script>
+  // create 2 data_set
+  var data1 = [{
+    group: 'Arizona',
+    value: 0.3865469189790579
+  }, {
+    group: 'California',
+    value: 0.4050129208909838
+  }, {
+    group: 'Colorado',
+    value: 0.2951728403568268
+  }, {
+    group: 'Connecticut',
+    value: 0.6548673113187155
+  }, {
+    group: 'Delaware',
+    value: 0.3399756153424581
+  }, {
+    group: 'District of Columbia',
+    value: 0.3434598347594385
+  }, {
+    group: 'Georgia',
+    value: 0.2629329436100446
+  }, {
+    group: 'Hawaii',
+    value: 0.5884259939193781
+  }, {
+    group: 'Illinois',
+    value: 0.4832814239166878
+  }, {
+    group: 'Maine',
+    value: 0.44932329654693604
+  }, {
+    group: 'Maryland',
+    value: 0.3827726597135717
+  }, {
+    group: 'Massachusetts',
+    value: 0.4080263189971447
+  }, {
+    group: 'Michigan',
+    value: 0.5028117089108988
+  }, {
+    group: 'Minnesota',
+    value: 0.1907704163480688
+  }, {
+    group: 'Nevada',
+    value: 0.18554289638996124
+  }, {
+    group: 'New Hampshire',
+    value: 0.6934316505988439
+  }, {
+    group: 'New Jersey',
+    value: 0.6902761814685969
+  }, {
+    group: 'New Mexico',
+    value: 0.1858637414195321
+  }, {
+    group: 'New York',
+    value: 0.3189077993102421
+  }, {
+    group: 'Oregon',
+    value: 0.313197985291481
+  }, {
+    group: 'Pennsylvania',
+    value: 0.336964673165119
+  }, {
+    group: 'Rhode Island',
+    value: 0.31681759442601887
+  }, {
+    group: 'Vermont',
+    value: 0.24317076802253723
+  }, {
+    group: 'Virginia',
+    value: 0.5346111346174169
+  }, {
+    group: 'Washington',
+    value: 0.4208044094859429
+  }, {
+    group: 'Wisconsin',
+    value: 0.4070702384818684
+  }];
+
+
+  var data2 = [{group: 'Arizona', value: 0.11527610321839649}, {group: 'California', value: 0.12804459110772098}, {group: 'Colorado', value: 0.18736030906438828}, {group: 'Connecticut', value: 0.2315463423728943}, {group: 'Delaware', value: 0.005133161942164122}, {group: 'District of Columbia', value: 0.009556531906127985}, {group: 'Georgia', value: 0.10656120727459589}, {group: 'Hawaii', value: 0.13248465458552044}, {group: 'Illinois', value: 0.3197428435087204}, {group: 'Maine', value: 0.01798414758273531}, {group: 'Maryland', value: 0.16779007455881906}, {group: 'Massachusetts', value: 0.2668883984997159}, {group: 'Michigan', value: 0.08966071101335377}, {group: 'Minnesota', value: 0.2995354107448033}, {group: 'Nevada', value: 0.024371184800800527}, {group: 'New Hampshire', value: 0.02236348390579218}, {group: 'New Jersey', value: 0.05356264114379883}, {group: 'New Mexico', value: 0.01807314583233427}, {group: 'New York', value: 0.20713045336456914}, {group: 'Oregon', value: 0.1143037470487448}, {group: 'Pennsylvania', value: 0.16498357109856188}, {group: 'Rhode Island', value: 0.15796602198055815}, {group: 'Vermont', value: 0.40319669246673584}, {group: 'Virginia', value: 0.301584925254186}, {group: 'Washington', value: 0.18504587422429986}, {group: 'Wisconsin', value: 0.01925336420536039}];
+  
+  // set the dimensions and margins of the graph
+  var margin = {
+      top: 30,
+      right: 30,
+      bottom: 70,
+      left: 60
+    },
+    width = 1900 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+  // append the svg object to the body of the page
+  var svg = d3.select("#my_dataviz").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  // Initialize the X axis
+  var x = d3.scaleBand().range([0, width]).padding(0.2);
+  var xAxis = svg.append("g").attr("transform", "translate(0," + height + ")")
+  // Initialize the Y axis
+  var y = d3.scaleLinear().range([height, 0]);
+  var yAxis = svg.append("g").attr("class", "myYaxis")
+  // Graph title
+  svg.append("text").attr("x", (width / 2)).attr("y", 0 - (margin.top / 2)).attr("text-anchor", "middle").style("font-size", "16px").text("Abortion Sentiment Across Democrat States");
+  // A function that create / update the plot for a given variable:
+  function update(data) {
+    // Update the X axis
+    x.domain(data.map(function(d) {
+      return d.group;
+    }))
+    xAxis.call(d3.axisBottom(x))
+    // Update the Y axis
+    y.domain([0, d3.max(data, function(d) {
+      return d.value
+    })]);
+    yAxis.transition().duration(1000).call(d3.axisLeft(y));
+    // Create the u variable
+    var u = svg.selectAll("rect").data(data)
+    u.enter().append("rect") // Add a new rect for each new elements
+      .merge(u) // get the already existing elements as well
+      .transition() // and apply changes to all of them
+      .duration(1000).attr("x", function(d) {
+        return x(d.group);
+      }).attr("y", function(d) {
+        return y(d.value);
+      }).attr("width", x.bandwidth()).attr("height", function(d) {
+        return height - y(d.value);
+      }).attr("fill", "blue")
+    // If less group in the new dataset, I delete the ones not in use anymore
+    u.exit().remove()
+  }
+   // This function is called by the buttons on top of the plot
+    function changeColor(color){
+      d3.selectAll("rect")
+        .transition()
+        .duration(2000)
+        .style("fill", color)
+    }
+   // function calls
+    function buttonclickChoice(){
+        changeColor('blue');
+        update(data2);
+    }
+    function buttonclickLife(){
+        changeColor('red');
+        update(data1);
+    }
+  // Initialize the plot with the first dataset
+  update(data1)
+</script>
