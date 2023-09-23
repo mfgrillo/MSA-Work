@@ -1,0 +1,1 @@
+This is just the ipynb utilized for a homework task meant to leverage AWS clusters for the purpose of analyzing Taxi data in New York utilizing PySpark.
